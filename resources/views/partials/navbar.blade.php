@@ -9,7 +9,7 @@
             <a href="{{ route('home') }}" class="transition hover:text-black">Home</a>
             <a href="{{ route('about') }}" class="transition hover:text-black">About</a>
             <a href="{{ route('education') }}" class="transition hover:text-black">Education</a>
-            <a href="{{ route('projects') }}" class="transition hover:text-black">Projects</a>
+            <a href="{{ route('projects.index') }}" class="transition hover:text-black">Projects</a>
         </div>
 
     </div>
