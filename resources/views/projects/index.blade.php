@@ -11,11 +11,19 @@
             Project Portofolio
         </h1>
 
-        <a href="{{ route('projects.create') }}"
-        class="px-4 py-2 bg-black text-white rounded-lg">
+        <a
+            href="{{ route('projects.create') }}"
+            class="px-4 py-2 bg-black text-white rounded-lg"
+        >
             Tambah Project
         </a>
     </div>
+
+    @if (session('success'))
+        <div class="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700">
+            {{ session('success') }}
+        </div>
+    @endif
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
@@ -31,10 +39,39 @@
                     {{ $project->description }}
                 </p>
 
-                <a href="{{ route('projects.show', $project) }}"
-                   class="text-blue-600">
-                    Lihat Detail
-                </a>
+                <div class="flex gap-4">
+
+                    <a
+                        href="{{ route('projects.show', $project) }}"
+                        class="text-blue-600 hover:underline"
+                    >
+                        Lihat Detail
+                    </a>
+
+                    <a
+                        href="{{ route('projects.edit', $project) }}"
+                        class="text-green-600 hover:underline"
+                    >
+                        Edit
+                    </a>
+
+                    <form
+                        action="{{ route('projects.destroy', $project) }}"
+                        method="POST"
+                        onsubmit="return confirm('Apakah kamu yakin ingin menghapus project ini?')"
+                    >
+                        @csrf
+                        @method('DELETE')
+
+                        <button
+                            type="submit"
+                            class="text-red-600 hover:text-red-800"
+                        >
+                            Delete
+                        </button>
+                    </form>
+
+                </div>
 
             </div>
 

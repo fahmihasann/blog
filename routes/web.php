@@ -12,4 +12,4 @@ Route::get('/about', fn() => view('about'))->name('about');
 Route::get('/education', fn() => view('education'))->name('education');
 Route::get('/projects', fn() => view('projects'))->name('projects');
 
-Route::resource('projects', ProjectController::class)->only(['index', 'show', 'create', 'store']);
+Route::resource('projects', ProjectController::class)->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
