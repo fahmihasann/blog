@@ -11,12 +11,13 @@
 
         {{-- Tengah: Menu utama --}}
         <div class="flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-sm font-medium text-gray-500">
+            <a href="{{ route('post.dashboard.index') }}" class="transition hover:text-black">Dashboard</a>
             <a href="{{ route('home') }}" class="transition hover:text-black">Home</a>
             <a href="{{ route('about') }}" class="transition hover:text-black">About</a>
             <a href="{{ route('education') }}" class="transition hover:text-black">Education</a>
 
             @auth
-                <a href="{{ route('projects.index') }}" class="transition hover:text-black">
+                <a href="{{ route('projects') }}" class="transition hover:text-black">
                     Projects
                 </a>
             @endauth

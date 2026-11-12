@@ -2,112 +2,138 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Category;
 use App\Models\Project;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProjectController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Halaman kelola lama diarahkan ke halaman project gabungan.
      */
-    public function index(Request $request)
-{
-    $request->validate([
-        'search' => 'nullable|string|max:200',
-        'per_page' => 'nullable|integer|in:5,10,25',
-    ]);
-
-    $search = $request->input('search', '');
-    $perPage = (int) $request->input('per_page', 10);
-
-    $projects = Project::query()
-        ->when($search !== '', function ($query) use ($search) {
-            $query->where('title', 'like', '%' . $search . '%');
-        })
-        ->latest()
-        ->paginate($perPage)
-        ->withQueryString();
-
-    return view('projects.index', compact(
-        'projects',
-        'search',
-        'perPage'
-    ));
-}
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function index()
     {
-        return view('projects.create');
+        return redirect()->route('projects');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Form tambah project.
+     */
+    public function create()
+    {
+        return view('projects.create', [
+            'categories' => Category::all(),
+        ]);
+    }
+
+    /**
+     * Simpan project baru beserta thumbnail.
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|min: 5|max: 200',
-            'description' => 'required|string|min: 10',
+        $validated = $request->validate([
+            'name' => 'required|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'description' => 'required|string|min:10',
+            'status' => 'required|in:draft,published',
+            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:min_width=400,min_height=300',
         ]);
 
-        Project::create([
-            'title' => $request->input('title'),
-            'description' => $request->input('description'),
-        ]);
+        $data = [
+            'title' => $validated['name'],
+            'category_id' => $validated['category_id'],
+            'description' => $validated['description'],
+            'status' => $validated['status'],
+        ];
 
-        return redirect()->route('projects.index')
+        if ($request->hasFile('thumbnail')) {
+            $data['thumbnail'] = $request->file('thumbnail')
+                ->store('projects/thumbnails', 'public');
+        }
+
+        Project::create($data);
+
+        return redirect()->route('post.projects.create')
             ->with('success', 'Project berhasil ditambahkan.');
     }
 
     /**
-     * Display the specified resource.
+     * Detail project (admin).
      */
     public function show(Project $project)
     {
+        $project->load(['category', 'images']);
+
         return view('projects.show', compact('project'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Form edit project.
      */
-    public function edit(string $id)
+    public function edit(Project $project)
     {
-        $project = Project::findOrFail($id);
-        $data = [
+        $project->load('images');
+
+        return view('projects.edit', [
             'project' => $project,
-        ];
-        return view('projects.edit', $data);
+            'categories' => Category::all(),
+        ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update project. File thumbnail lama dihapus saat diganti.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Project $project)
     {
-        $validatedData = $request->validate([
-            'title' => 'required|string|min: 5|max: 200',
+        $validated = $request->validate([
+            'name' => 'required|max:255',
+            'category_id' => 'required|exists:categories,id',
             'description' => 'required|string|min:10',
+            'status' => 'required|in:draft,published',
+            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:min_width=400,min_height=300',
         ]);
 
-        $project = Project::findOrFail($id);
+        $data = [
+            'title' => $validated['name'],
+            'category_id' => $validated['category_id'],
+            'description' => $validated['description'],
+            'status' => $validated['status'],
+        ];
 
-        $project->update($validatedData);
+        if ($request->hasFile('thumbnail')) {
+            // Hapus file lama dulu bila ada.
+            if ($project->thumbnail) {
+                Storage::disk('public')->delete($project->thumbnail);
+            }
 
-        return redirect()->route('projects.index')
+            $data['thumbnail'] = $request->file('thumbnail')
+                ->store('projects/thumbnails', 'public');
+        }
+
+        $project->update($data);
+
+        return redirect()->route('post.projects.edit', $project)
             ->with('success', 'Project berhasil diperbarui.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Hapus project beserta thumbnail dan seluruh file gallery.
      */
-    public function destroy(string $id)
+    public function destroy(Project $project)
     {
-        $project = Project::findOrFail($id);
+        if ($project->thumbnail) {
+            Storage::disk('public')->delete($project->thumbnail);
+        }
+
+        foreach ($project->images as $image) {
+            Storage::disk('public')->delete($image->image);
+        }
+
+        // Baris project_images ikut terhapus otomatis lewat cascadeOnDelete.
         $project->delete();
-        return redirect()->route('projects.index')
-            ->with('success', 'Project berhasil dihapus.');
+
+        return redirect()->route('projects')
+            ->with('success', 'Project dihapus.');
     }
 }
