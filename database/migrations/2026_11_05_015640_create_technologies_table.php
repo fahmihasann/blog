@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('technologies', function (Blueprint $table) {
-            $table->id();
             $table->foreignId('category_id')
                 ->nullable()
                 ->constrained('categories')
@@ -20,7 +19,6 @@ return new class extends Migration
             $table->string('name', 100);
             $table->text('description')->nullable();
             $table->string('icon', 255)->nullable();
-            $table->timestamps();
         });
     }
 

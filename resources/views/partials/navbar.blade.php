@@ -20,6 +20,9 @@
                 <a href="{{ route('projects') }}" class="transition hover:text-black">
                     Projects
                 </a>
+                <a href="{{ route('post.projects.index') }}" class="transition hover:text-black">
+                    Kelola Project
+                </a>
             @endauth
         </div>
 

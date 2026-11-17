@@ -35,23 +35,50 @@
             </div>
         @endif
 
-        {{-- Pencarian --}}
+        {{-- Search + filter + sorting (form GET) --}}
         <form action="{{ route('projects') }}" method="GET"
               class="mb-8 flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:flex-row sm:flex-wrap sm:items-end">
+
             <div class="w-full sm:w-64">
-                <label for="search" class="mb-2 block text-sm font-medium text-gray-700">Cari judul</label>
-                <input type="text" name="search" id="search" value="{{ $search }}"
-                       placeholder="Masukkan judul project"
+                <label for="search" class="mb-2 block text-sm font-medium text-gray-700">Cari project</label>
+                <input type="text" name="search" id="search" value="{{ request('search') }}"
+                       placeholder="Judul atau deskripsi"
                        class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
             </div>
 
-            <div class="w-full sm:w-44">
-                <label for="per_page" class="mb-2 block text-sm font-medium text-gray-700">Data per halaman</label>
-                <select name="per_page" id="per_page"
+            <div class="w-full sm:w-52">
+                <label for="category" class="mb-2 block text-sm font-medium text-gray-700">Kategori</label>
+                <select name="category" id="category"
                         class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none">
-                    <option value="5" {{ $perPage == 5 ? 'selected' : '' }}>5 data</option>
-                    <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10 data</option>
-                    <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25 data</option>
+                    <option value="">Semua kategori</option>
+                    @foreach ($categories as $category)
+                        <option value="{{ $category->slug }}" @selected(request('category') === $category->slug)>
+                            {{ $category->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="w-full sm:w-52">
+                <label for="technology" class="mb-2 block text-sm font-medium text-gray-700">Technology</label>
+                <select name="technology" id="technology"
+                        class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none">
+                    <option value="">Semua technology</option>
+                    @foreach ($technologies as $technology)
+                        <option value="{{ $technology->slug }}" @selected(request('technology') === $technology->slug)>
+                            {{ $technology->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="w-full sm:w-56">
+                <label for="sort" class="mb-2 block text-sm font-medium text-gray-700">Urutkan</label>
+                <select name="sort" id="sort"
+                        class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none">
+                    <option value="terbaru" @selected(request('sort', 'terbaru') === 'terbaru')>Tanggal project terbaru</option>
+                    <option value="terlama" @selected(request('sort') === 'terlama')>Tanggal project terlama</option>
+                    <option value="az" @selected(request('sort') === 'az')>Judul A-Z</option>
                 </select>
             </div>
 
@@ -66,8 +93,24 @@
             </div>
         </form>
 
+        {{-- Ringkasan hasil --}}
+        <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-sm text-gray-600">
+                <span class="font-semibold text-gray-900">{{ $projects->total() }}</span> hasil ditemukan
+            </p>
+
+            @if (request()->hasAny(['search', 'category', 'technology', 'sort']))
+                <p class="text-xs text-gray-500">
+                    Filter aktif:
+                    @if (request('search')) <span class="font-medium">"{{ request('search') }}"</span> @endif
+                    @if (request('category')) <span class="ml-1">· kategori: {{ request('category') }}</span> @endif
+                    @if (request('technology')) <span class="ml-1">· technology: {{ request('technology') }}</span> @endif
+                </p>
+            @endif
+        </div>
+
         {{-- Grid project --}}
-        <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             @forelse ($projects as $project)
                 <div class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition duration-300 hover:shadow-md">
 
@@ -97,8 +140,18 @@
                         </h3>
 
                         <p class="mb-4 text-sm text-gray-600">
-                            {{ \Illuminate\Support\Str::limit($project->description, 150) }}
+                            {{ \Illuminate\Support\Str::limit($project->short_description ?: $project->description, 150) }}
                         </p>
+
+                        @if ($project->technologies->isNotEmpty())
+                            <div class="mb-4 flex flex-wrap gap-2">
+                                @foreach ($project->technologies as $technology)
+                                    <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+                                        {{ $technology->name }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        @endif
 
                         <div class="mt-auto flex flex-wrap items-center gap-4 border-t border-gray-100 pt-4 text-sm">
                             <a href="{{ route('projects.show', $project) }}" class="text-blue-600 hover:underline">
@@ -123,16 +176,9 @@
                     </div>
                 </div>
             @empty
-                <div class="rounded-xl border border-gray-200 bg-white p-8 text-center text-gray-500 md:col-span-2">
-                    <p class="text-lg font-medium">Belum ada project yang ditampilkan.</p>
-
-                    @auth
-                        <p class="mt-2 text-sm">
-                            Silakan tambah project baru atau ubah status project menjadi Published.
-                        </p>
-                    @else
-                        <p class="mt-2 text-sm">Silakan cek kembali nanti.</p>
-                    @endauth
+                <div class="rounded-xl border border-gray-200 bg-white p-8 text-center text-gray-500 md:col-span-2 lg:col-span-3">
+                    <p class="text-lg font-medium">Tidak ada project yang cocok.</p>
+                    <p class="mt-2 text-sm">Coba ubah kata kunci, kategori, atau technology.</p>
                 </div>
             @endforelse
         </div>

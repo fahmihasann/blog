@@ -15,7 +15,8 @@ Route::get('/education', fn () => view('education'))->name('education');
 
 // Halaman publik project
 Route::get('/projects', [PortfolioController::class, 'projects'])->name('projects');
-Route::get('/projects/{project}', [PortfolioController::class, 'show'])->name('projects.show');
+Route::get('/projects/{project:slug}', [PortfolioController::class, 'show'])
+    ->name('projects.show');
 
 // Dashboard admin
 Route::prefix('post')->name('post.')->middleware('auth')->group(function () {
