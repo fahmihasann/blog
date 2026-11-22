@@ -7,6 +7,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectGalleryController;
 use App\Http\Controllers\SkillController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ContactController;
 
 // Halaman publik
 Route::get('/', fn () => view('home'))->name('home');
@@ -17,6 +18,14 @@ Route::get('/education', fn () => view('education'))->name('education');
 Route::get('/projects', [PortfolioController::class, 'projects'])->name('projects');
 Route::get('/projects/{project:slug}', [PortfolioController::class, 'show'])
     ->name('projects.show');
+
+// Contact Form
+Route::get('/contact', [ContactController::class, 'create'])
+    ->name('contact');
+
+Route::post('/contact', [ContactController::class, 'store'])
+    ->middleware('throttle:contact')
+    ->name('contact.store');
 
 // Dashboard admin
 Route::prefix('post')->name('post.')->middleware('auth')->group(function () {
