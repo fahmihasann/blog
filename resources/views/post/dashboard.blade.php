@@ -8,13 +8,15 @@
     <h1 class="mb-8 text-3xl font-bold text-gray-900">Dashboard Admin</h1>
 
     {{-- Ringkasan data --}}
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <x-stat-card label="Projects" :value="$totalProjects" />
         <x-stat-card label="Categories" :value="$totalCategories" />
         <x-stat-card label="Technologies" :value="$totalTechnologies" />
         <x-stat-card label="Skills" :value="$totalSkills" />
         <x-stat-card label="Published" :value="$totalPublished" />
         <x-stat-card label="Draft" :value="$totalDraft" />
+        <x-stat-card label="Messages" :value="$totalMessages" color="text-purple-600" />
+        <x-stat-card label="Unread Messages" :value="$unreadMessages" color="text-orange-500" />
     </div>
 
     {{-- Project terbaru --}}

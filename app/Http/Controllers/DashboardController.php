@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Contact;
 use App\Models\Project;
 use App\Models\Skill;
 use App\Models\Technology;
@@ -20,6 +21,9 @@ class DashboardController extends Controller
             // Indikator: Published + Draft harus sama dengan total project.
             'totalPublished'    => Project::where('status', 'published')->count(),
             'totalDraft'        => Project::where('status', 'draft')->count(),
+
+            'totalMessages'     => Contact::count(),
+            'unreadMessages'    => Contact::where('is_read', false)->count(),
 
             // "Skill Teratas" = 5 skill dengan level tertinggi
             // (urutan: advanced > intermediate > beginner).
