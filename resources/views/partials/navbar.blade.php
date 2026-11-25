@@ -23,6 +23,9 @@
                 <a href="{{ route('post.projects.index') }}" class="transition hover:text-black">
                     Kelola Project
                 </a>
+                <a href="{{ route('post.contacts.index') }}" class="transition hover:text-black">
+                    Messages
+                </a>
             @endauth
         </div>
 

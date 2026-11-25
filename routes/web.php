@@ -7,6 +7,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectGalleryController;
 use App\Http\Controllers\SkillController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ContactAdminController;
 use App\Http\Controllers\ContactController;
 
 // Halaman publik
@@ -31,6 +32,7 @@ Route::post('/contact', [ContactController::class, 'store'])
 Route::prefix('post')->name('post.')->middleware('auth')->group(function () {
     Route::resource('dashboard', DashboardController::class);
     Route::resource('projects', ProjectController::class);
+    Route::resource('contacts', ContactAdminController::class)->only(['index', 'show']);
 
     // Gallery project
     Route::post('projects/{project}/images', [ProjectGalleryController::class, 'store'])
